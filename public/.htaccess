@@ -1,0 +1,54 @@
+# ===========================================================================
+# TalentMatch — configuração do servidor Apache (raiz pública)
+# ===========================================================================
+
+# Desativa a listagem de diretórios
+Options -Indexes
+
+# Segue links simbólicos apenas quando necessário
+Options -MultiViews
+
+DirectoryIndex index.php index.html
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Não reescrever arquivos e diretórios existentes (assets, endpoints .php)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Bloqueia acesso direto a arquivos sensíveis, caso existam na raiz pública
+    RewriteRule \.(env|sql|md|log|ini|bak)$ - [F,L]
+</IfModule>
+
+# Protege arquivos de configuração e artefatos que nunca devem ser públicos
+<FilesMatch "(^\.|\.(env|sql|md|log|ini|bak|example)$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Cabeçalhos de segurança básicos
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Compressão
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+# Cache de assets estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+</IfModule>
