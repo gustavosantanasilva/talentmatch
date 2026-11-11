@@ -7,11 +7,11 @@ declare(strict_types=1);
  */
 
 use App\Core\Csrf;
-use App\Core\Database;
 use App\Core\Request;
 use App\Core\View;
 use App\Middleware\Auth;
 use App\Models\GameEvent;
+use App\Models\Participant;
 use App\Models\Profile;
 use App\Models\Room;
 use App\Services\RoomService;
@@ -59,13 +59,7 @@ if ($flash === null) {
     $flash = flash_get();
 }
 
-$participantsStatement = Database::connection()->prepare(
-    'SELECT id, nickname, status, joined_at
-     FROM participants
-     WHERE room_id = :room_id
-     ORDER BY joined_at ASC, id ASC'
-);
-$participantsStatement->execute(['room_id' => $roomId]);
+$participants = Participant::listByRoom($roomId);
 
 View::render('admin/sala', [
     'title' => 'Sala ' . $room['code'],
@@ -73,7 +67,7 @@ View::render('admin/sala', [
     'heading' => 'Sala ' . $room['code'],
     'room' => $room,
     'joinUrl' => RoomService::joinUrl((string) $room['code']),
-    'participants' => $participantsStatement->fetchAll(),
+    'participants' => $participants,
     'events' => GameEvent::recentForRoom($roomId, 15),
     'allowedTransitions' => RoomService::allowedTransitions((string) $room['status']),
     'jobsCount' => Room::jobsCount($roomId),

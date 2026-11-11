@@ -14,41 +14,40 @@ $rooms = $rooms ?? [];
 $flash = $flash ?? null;
 
 $cards = [
-    ['label' => 'Salas criadas', 'value' => $stats['total'], 'icon' => 'grid'],
-    ['label' => 'Sala de espera', 'value' => $stats['waiting'], 'icon' => 'clock'],
-    ['label' => 'Em andamento', 'value' => $stats['active'], 'icon' => 'play'],
-    ['label' => 'Participantes', 'value' => $stats['participants'], 'icon' => 'users'],
+    ['label' => 'Salas criadas', 'value' => $stats['total'], 'icon' => '🎮', 'color' => '#1368CE'],
+    ['label' => 'Sala de espera', 'value' => $stats['waiting'], 'icon' => '⏳', 'color' => '#FFA602'],
+    ['label' => 'Em andamento', 'value' => $stats['active'], 'icon' => '⚡', 'color' => '#E21B3C'],
+    ['label' => 'Participantes', 'value' => $stats['participants'], 'icon' => '👥', 'color' => '#26890C'],
 ];
 ?>
 
 <?php if ($flash !== null): ?>
-    <div class="tm-alert tm-alert--<?= e($flash['type']) ?> tm-mb-3" role="status">
+    <div class="gk-alert gk-alert--<?= e($flash['type'] === 'danger' ? 'danger' : $flash['type']) ?> gk-mb-3" role="status">
         <?= e($flash['message']) ?>
     </div>
 <?php endif; ?>
 
-<div class="tm-grid tm-grid-4 tm-mb-3">
+<div class="tm-grid tm-grid-4 gk-mb-3">
     <?php foreach ($cards as $card): ?>
-        <div class="tm-card tm-reveal">
-            <div class="tm-stat">
-                <span class="tm-stat__label"><?= e($card['label']) ?></span>
-                <span class="tm-stat__value"><?= (int) $card['value'] ?></span>
-            </div>
+        <div class="gk-card gk-anim-pop">
+            <span class="gk-step__num gk-mb-2" style="background:<?= e($card['color']) ?>"><?= e($card['icon']) ?></span>
+            <span class="gk-stat__label"><?= e($card['label']) ?></span>
+            <span class="gk-stat__value"><?= (int) $card['value'] ?></span>
         </div>
     <?php endforeach; ?>
 </div>
 
-<div class="tm-grid" style="grid-template-columns: 1.6fr 1fr; gap:1.25rem">
-    <div class="tm-card">
-        <div class="tm-card__header">
+<div class="gk-split-2">
+    <div class="gk-card gk-anim-slide">
+        <div class="gk-card__head">
             <div>
-                <h2 class="tm-card__title">Suas salas</h2>
-                <p class="tm-card__subtitle">Partidas criadas por este organizador.</p>
+                <h2 class="gk-card__title">Suas salas</h2>
+                <p class="gk-card__subtitle gk-mb-0">Partidas criadas por este organizador.</p>
             </div>
         </div>
 
         <?php if ($rooms === []): ?>
-            <div class="tm-alert tm-alert--info">
+            <div class="gk-alert gk-alert--info">
                 Nenhuma sala criada ainda. Use o botão <strong>Criar sala</strong> para começar.
             </div>
         <?php else: ?>
@@ -67,19 +66,19 @@ $cards = [
                     <tbody>
                         <?php foreach ($rooms as $room): ?>
                             <tr>
-                                <td><strong class="tm-mono"><?= e((string) $room['code']) ?></strong></td>
+                                <td><strong class="gk-mono"><?= e((string) $room['code']) ?></strong></td>
                                 <td>
-                                    <span class="tm-badge <?= e(RoomService::statusBadgeClass((string) $room['status'])) ?>">
+                                    <span class="gk-badge <?= e(RoomService::statusBadgeClass((string) $room['status'])) ?>">
                                         <?= e(RoomService::statusLabel((string) $room['status'])) ?>
                                     </span>
                                 </td>
                                 <td><?= (int) ($room['participants_count'] ?? 0) ?></td>
                                 <td><?= (int) ($room['jobs_count'] ?? 0) ?></td>
-                                <td class="tm-text-secondary tm-text-sm">
+                                <td class="gk-text-muted gk-text-sm">
                                     <?= e(date('d/m/Y H:i', strtotime((string) $room['created_at']))) ?>
                                 </td>
                                 <td style="text-align:right">
-                                    <a class="tm-btn tm-btn--secondary tm-btn--sm"
+                                    <a class="gk-btn gk-btn--primary gk-btn--sm"
                                        href="<?= e(base_url('admin/sala.php?id=' . (int) $room['id'])) ?>">
                                         Abrir
                                     </a>
@@ -92,22 +91,22 @@ $cards = [
         <?php endif; ?>
     </div>
 
-    <div class="tm-flex-col tm-gap">
-        <div class="tm-card">
-            <h2 class="tm-card__title tm-mb-2">Nova partida</h2>
-            <p class="tm-text-secondary tm-text-sm">
+    <div class="gk-flex-col gk-gap">
+        <div class="gk-card gk-anim-slide gk-delay-1">
+            <h2 class="gk-card__title gk-mb-1">Nova partida</h2>
+            <p class="gk-text-muted gk-text-sm gk-mb-2">
                 Cria uma sala com código e QR Code para os participantes entrarem.
             </p>
             <form method="post" action="<?= e(base_url('admin/dashboard.php')) ?>">
                 <?= Csrf::field() ?>
                 <input type="hidden" name="action" value="create_room">
-                <button type="submit" class="tm-btn tm-btn--primary tm-btn--block">Criar sala</button>
+                <button type="submit" class="gk-btn gk-btn--primary gk-btn--lg gk-btn--block">+ Criar sala</button>
             </form>
         </div>
 
-        <div class="tm-card">
-            <h2 class="tm-card__title tm-mb-2">Como funciona</h2>
-            <ol class="tm-text-secondary tm-text-sm" style="padding-left:1.1rem;margin:0">
+        <div class="gk-card gk-anim-slide gk-delay-2">
+            <h2 class="gk-card__title gk-mb-2">Como funciona</h2>
+            <ol class="gk-text-muted gk-text-sm" style="padding-left:1.1rem;margin:0">
                 <li>Crie a sala e projete o QR Code no telão.</li>
                 <li>Os participantes entram e montam o perfil.</li>
                 <li>A IA gera até quatro vagas fictícias.</li>
@@ -116,9 +115,3 @@ $cards = [
         </div>
     </div>
 </div>
-
-<style>
-    @media (max-width: 992px) {
-        .tm-grid[style*="1.6fr"] { grid-template-columns: 1fr !important; }
-    }
-</style>

@@ -41,6 +41,7 @@ $navItems = $nav ?? [
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= e(asset('vendor/bootstrap.min.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset('css/game.css')) ?>">
 </head>
 <body class="<?= e($bodyClass) ?>">
 
@@ -87,6 +88,7 @@ $navItems = $nav ?? [
 
 <script src="<?= e(asset('vendor/bootstrap.bundle.min.js')) ?>" defer></script>
 <script src="<?= e(asset('js/app.js')) ?>" defer></script>
+<script src="<?= e(asset('js/game.js')) ?>" defer></script>
 <?php foreach ($extraScripts as $script): ?>
 <script src="<?= e(asset('js/' . ltrim((string) $script, '/'))) ?>" defer></script>
 <?php endforeach; ?>

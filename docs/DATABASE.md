@@ -53,6 +53,8 @@ Participantes de uma sala. O token de sessão é armazenado **apenas como hash S
 |---|---|---|
 | `room_id` | FK → rooms | |
 | `nickname` | VARCHAR(30) | único por sala |
+| `avatar` | VARCHAR(16) | emoji escolhido pelo participante |
+| `avatar_color` | VARCHAR(7) | cor de fundo do avatar (hex) |
 | `token_hash` | CHAR(64) UNIQUE | `hash('sha256', $token)` |
 | `status` | ENUM | `WAITING`,`PROFILE_PENDING`,`READY` |
 | `is_active` | TINYINT | permite remover sem apagar histórico |

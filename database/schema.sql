@@ -74,6 +74,8 @@ CREATE TABLE `participants` (
     `id`          INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `room_id`     INT UNSIGNED NOT NULL,
     `nickname`    VARCHAR(30)  NOT NULL,
+    `avatar`      VARCHAR(16)  NOT NULL DEFAULT '🙂',
+    `avatar_color` VARCHAR(7) NOT NULL DEFAULT '#087F5B',
     `token_hash`  CHAR(64)     NOT NULL,
     `status`      ENUM('WAITING','PROFILE_PENDING','READY') NOT NULL DEFAULT 'WAITING',
     `is_active`   TINYINT(1)   NOT NULL DEFAULT 1,

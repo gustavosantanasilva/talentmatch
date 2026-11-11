@@ -32,6 +32,8 @@ if ($room !== null && $current !== null && (int) $current['room_id'] === (int) $
 $mode = 'form';
 $error = '';
 $nickname = '';
+$avatar = (string) config('app.default_avatar', '🙂');
+$avatarColor = (string) (config('app.avatar_colors', [])[0] ?? '#087F5B');
 
 if ($room === null) {
     $mode = 'notfound';
@@ -41,7 +43,9 @@ if ($room === null) {
     Csrf::validate();
 
     $nickname = Request::string('nickname');
-    $result = ParticipantService::join($room, $nickname);
+    $avatar = ParticipantService::normalizeAvatar(Request::string('avatar'));
+    $avatarColor = ParticipantService::normalizeAvatarColor(Request::string('avatar_color'));
+    $result = ParticipantService::join($room, $nickname, $avatar, $avatarColor);
 
     if ($result['ok']) {
         ParticipantAuth::login($result['participant'], (string) $result['token']);
@@ -58,6 +62,10 @@ View::render('participant/entrar', [
     'mode' => $mode,
     'error' => $error,
     'nickname' => $nickname,
+    'avatar' => $avatar,
+    'avatarColor' => $avatarColor,
+    'avatars' => (array) config('app.avatars', []),
+    'avatarColors' => (array) config('app.avatar_colors', []),
     'participantsCount' => $room === null ? 0 : Participant::countByRoom((int) $room['id']),
     'roomCode' => $room === null ? null : (string) $room['code'],
 ], 'layouts/participant');

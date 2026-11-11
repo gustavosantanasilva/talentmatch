@@ -1,6 +1,6 @@
 <?php
 /**
- * Detalhe e controle de uma sala.
+ * Lobby da sala — QR Code de entrada e participantes ao vivo.
  *
  * @var array  $room
  * @var string $joinUrl
@@ -20,154 +20,144 @@ $flash = $flash ?? null;
 $status = (string) $room['status'];
 $canStart = in_array('PROFILES', $allowedTransitions, true) && count($participants) >= 1;
 $canFinish = in_array('FINISHED', $allowedTransitions, true);
+
+$tilePalette = ['#1368CE', '#E21B3C', '#FFA602', '#26890C', '#864CBF', '#0D9488'];
+$roomId = (int) $room['id'];
 ?>
 
 <?php if ($flash !== null): ?>
-    <div class="tm-alert tm-alert--<?= e($flash['type']) ?> tm-mb-3" role="status">
+    <div class="gk-alert gk-alert--<?= e($flash['type'] === 'danger' ? 'danger' : $flash['type']) ?> gk-mb-3" role="status">
         <?= e($flash['message']) ?>
     </div>
 <?php endif; ?>
 
-<div class="tm-flex-between tm-wrap tm-gap tm-mb-3">
-    <div>
-        <div class="tm-flex-center tm-gap-sm">
-            <h2 class="tm-room-code tm-mb-0"><?= e((string) $room['code']) ?></h2>
-            <span class="tm-badge <?= e(RoomService::statusBadgeClass($status)) ?>">
-                <?= e(RoomService::statusLabel($status)) ?>
-            </span>
-        </div>
-        <p class="tm-text-secondary tm-mb-0 tm-text-sm">
-            Sala criada em <?= e(date('d/m/Y H:i', strtotime((string) $room['created_at']))) ?>
-            <?php if (!empty($room['started_at'])): ?>
-                · iniciada em <?= e(date('d/m/Y H:i', strtotime((string) $room['started_at']))) ?>
-            <?php endif; ?>
-        </p>
+<div class="gk-toolbar gk-mb-3">
+    <div class="gk-flex-center gk-gap-sm gk-wrap">
+        <h2 class="gk-room-code gk-mb-0" style="font-size:clamp(1.6rem,3vw,2.2rem)"><?= e((string) $room['code']) ?></h2>
+        <span class="gk-badge <?= e(RoomService::statusBadgeClass($status)) ?>"><?= e(RoomService::statusLabel($status)) ?></span>
     </div>
-
-    <div class="tm-flex-center tm-gap-sm">
-        <a class="tm-btn tm-btn--secondary tm-btn--sm" href="<?= e(base_url('admin/dashboard.php')) ?>">← Voltar</a>
-        <a class="tm-btn tm-btn--secondary tm-btn--sm" href="<?= e(base_url('admin/sala.php?id=' . (int) $room['id'])) ?>">Atualizar</a>
+    <div class="gk-toolbar__actions">
+        <a class="gk-btn gk-btn--dark gk-btn--sm" href="<?= e(base_url('admin/telao.php?id=' . $roomId)) ?>" target="_blank" rel="noopener">
+            🖥️ Modo telão
+        </a>
+        <a class="gk-btn gk-btn--ghost gk-btn--sm" href="<?= e(base_url('admin/dashboard.php')) ?>">← Voltar</a>
+        <a class="gk-btn gk-btn--white gk-btn--sm" href="<?= e(base_url('admin/sala.php?id=' . $roomId)) ?>">Atualizar</a>
     </div>
 </div>
 
-<div class="tm-grid" style="grid-template-columns: 1fr 1.5fr; gap:1.25rem">
-    <div class="tm-flex-col tm-gap">
-        <div class="tm-card tm-text-center">
-            <h3 class="tm-card__title">Entrada por QR Code</h3>
-            <p class="tm-card__subtitle">Projete no telão para os participantes.</p>
+<div class="gk-lobby">
+    <div class="gk-lobby__side">
+        <div class="gk-card gk-card--pad-lg gk-center gk-anim-pop">
+            <span class="gk-eyebrow">Entre na sala</span>
+            <h3 class="gk-card__title gk-mt-1 gk-mb-2">Escaneie o QR Code</h3>
 
-            <div class="tm-flex-center tm-mt-2" style="justify-content:center">
-                <div id="qrcode" class="tm-qr" data-url="<?= e($joinUrl) ?>" role="img"
-                     aria-label="QR Code de entrada da sala <?= e((string) $room['code']) ?>"></div>
+            <div id="qrcode" class="gk-qr gk-qr--lg" data-url="<?= e($joinUrl) ?>" role="img"
+                 aria-label="QR Code de entrada da sala <?= e((string) $room['code']) ?>"></div>
+
+            <div class="gk-link-box gk-mt-3" style="text-align:left">
+                <code class="gk-mono"><?= e($joinUrl) ?></code>
+                <button type="button" class="gk-btn gk-btn--white gk-btn--sm" data-tm-copy="<?= e($joinUrl) ?>">Copiar</button>
             </div>
 
-            <div class="tm-link-box tm-mt-2" style="text-align:left">
-                <code class="tm-mono"><?= e($joinUrl) ?></code>
-                <button type="button" class="tm-btn tm-btn--secondary tm-btn--sm" data-tm-copy="<?= e($joinUrl) ?>">Copiar</button>
+            <div class="gk-count gk-mt-3" style="justify-content:center">
+                <span class="gk-count__value" data-gk-count><?= count($participants) ?></span>
+                <span class="gk-count__label"><?= count($participants) === 1 ? 'participante na sala' : 'participantes na sala' ?></span>
             </div>
         </div>
 
-        <div class="tm-card">
-            <h3 class="tm-card__title tm-mb-2">Resumo</h3>
-            <div class="tm-flex-between tm-mb-1"><span class="tm-text-secondary">Participantes</span><strong><?= count($participants) ?></strong></div>
-            <div class="tm-flex-between tm-mb-1"><span class="tm-text-secondary">Perfis concluídos</span><strong><?= (int) ($completedProfiles ?? 0) ?> / <?= count($participants) ?></strong></div>
-            <div class="tm-flex-between tm-mb-1"><span class="tm-text-secondary">Vagas geradas</span><strong><?= (int) $room['current_job_index'] > 0 || $status === 'JOBS' || $status === 'RESULTS' ? (int) ($jobsCount ?? 0) : 0 ?></strong></div>
-            <div class="tm-flex-between tm-mb-1"><span class="tm-text-secondary">Origem das vagas</span><strong><?= e((string) $room['jobs_source']) ?></strong></div>
-            <div class="tm-flex-between"><span class="tm-text-secondary">Estado</span><strong><?= e($status) ?></strong></div>
-        </div>
-    </div>
-
-    <div class="tm-flex-col tm-gap">
-        <div class="tm-card">
-            <div class="tm-card__header">
-                <div>
-                    <h3 class="tm-card__title">Controle da partida</h3>
-                    <p class="tm-card__subtitle">As transições são validadas no servidor.</p>
-                </div>
-            </div>
+        <div class="gk-card gk-anim-slide gk-delay-1">
+            <h3 class="gk-card__title gk-mb-2">Controle da partida</h3>
 
             <?php if ($status === 'WAITING'): ?>
-                <div class="tm-alert tm-alert--info tm-mb-2">
+                <div class="gk-alert gk-alert--info gk-mb-2">
                     Aguardando participantes. O início exige pelo menos uma pessoa na sala.
                 </div>
-                <form method="post" action="<?= e(base_url('admin/sala.php?id=' . (int) $room['id'])) ?>">
+                <form method="post" action="<?= e(base_url('admin/sala.php?id=' . $roomId)) ?>">
                     <?= Csrf::field() ?>
                     <input type="hidden" name="action" value="start">
-                    <button type="submit" class="tm-btn tm-btn--primary" <?= $canStart ? '' : 'disabled' ?>>
-                        Iniciar partida
+                    <button type="submit" class="gk-btn gk-btn--primary gk-btn--lg gk-btn--block" <?= $canStart ? '' : 'disabled' ?>>
+                        ▶ Iniciar partida
                     </button>
                     <?php if (!$canStart): ?>
-                        <span class="tm-hint">Disponível após o primeiro participante entrar.</span>
+                        <div class="gk-hint gk-center gk-mt-1">Disponível após o primeiro participante entrar.</div>
                     <?php endif; ?>
                 </form>
             <?php else: ?>
-                <p class="tm-text-secondary">
+                <p class="gk-lead gk-mb-2">
                     Estado atual: <strong><?= e(RoomService::statusLabel($status)) ?></strong>.
-                    Os controles das próximas etapas serão liberados nas fases seguintes do desenvolvimento.
+                    Os controles das próximas etapas serão liberados nas fases seguintes.
                 </p>
             <?php endif; ?>
 
             <?php if ($canFinish): ?>
-                <hr style="border:0;border-top:1px solid var(--tm-border);margin:1.25rem 0">
-                <form method="post" action="<?= e(base_url('admin/sala.php?id=' . (int) $room['id'])) ?>"
+                <hr class="gk-divider">
+                <form method="post" action="<?= e(base_url('admin/sala.php?id=' . $roomId)) ?>"
                       data-tm-confirm="Encerrar a sala? Esta ação não pode ser desfeita.">
                     <?= Csrf::field() ?>
                     <input type="hidden" name="action" value="finish">
-                    <button type="submit" class="tm-btn tm-btn--danger tm-btn--sm">Encerrar sala</button>
+                    <button type="submit" class="gk-btn gk-btn--red gk-btn--block">Encerrar sala</button>
                 </form>
             <?php endif; ?>
         </div>
 
-        <div class="tm-card">
-            <div class="tm-card__header">
+        <div class="gk-card gk-anim-slide gk-delay-2">
+            <h3 class="gk-card__title gk-mb-2">Resumo</h3>
+            <div class="gk-flex-between gk-mb-1"><span class="gk-text-muted">Participantes</span><strong><?= count($participants) ?></strong></div>
+            <div class="gk-flex-between gk-mb-1"><span class="gk-text-muted">Perfis concluídos</span><strong><?= (int) ($completedProfiles ?? 0) ?> / <?= count($participants) ?></strong></div>
+            <div class="gk-flex-between gk-mb-1"><span class="gk-text-muted">Vagas geradas</span><strong><?= (int) $room['current_job_index'] > 0 || $status === 'JOBS' || $status === 'RESULTS' ? (int) ($jobsCount ?? 0) : 0 ?></strong></div>
+            <div class="gk-flex-between gk-mb-1"><span class="gk-text-muted">Origem das vagas</span><strong><?= e((string) $room['jobs_source']) ?></strong></div>
+            <div class="gk-flex-between"><span class="gk-text-muted">Estado</span><strong><?= e($status) ?></strong></div>
+        </div>
+    </div>
+
+    <div class="gk-lobby__main">
+        <div class="gk-card gk-card--pad-lg gk-anim-slide">
+            <div class="gk-card__head">
                 <div>
-                    <h3 class="tm-card__title">Participantes</h3>
-                    <p class="tm-card__subtitle">Nomes de exibição (apelidos).</p>
+                    <h2 class="gk-card__title">Participantes</h2>
+                    <p class="gk-card__subtitle gk-mb-0">A lista atualiza sozinha a cada 3 segundos.</p>
                 </div>
+                <span class="gk-badge gk-badge--green" data-gk-status><?= e(RoomService::statusLabel($status)) ?></span>
             </div>
 
-            <?php if ($participants === []): ?>
-                <div class="tm-alert tm-alert--info">
-                    Ninguém entrou ainda. Compartilhe o QR Code ou o link de entrada.
-                </div>
-            <?php else: ?>
-                <div class="tm-table-scroll">
-                    <table class="tm-table tm-table--zebra">
-                        <thead>
-                            <tr><th>#</th><th>Apelido</th><th>Perfil</th><th>Entrou em</th></tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($participants as $index => $participant): ?>
-                                <tr>
-                                    <td><?= (int) ($index + 1) ?></td>
-                                    <td><?= e((string) $participant['nickname']) ?></td>
-                                    <td><span class="tm-badge"><?= e(Participant::statusLabel((string) $participant['status'])) ?></span></td>
-                                    <td class="tm-text-secondary tm-text-sm">
-                                        <?= e(date('H:i', strtotime((string) $participant['joined_at']))) ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
+            <ul class="gk-players" data-gk-players>
+                <?php foreach ($participants as $index => $item): ?>
+                    <?php
+                        $color = (string) ($item['avatar_color'] ?? '');
+                        if (preg_match('/^#[0-9A-Fa-f]{6}$/', $color) !== 1) {
+                            $color = $tilePalette[$index % count($tilePalette)];
+                        }
+                    ?>
+                    <li class="gk-tile" style="--gk-tile-bg:<?= e(strtoupper($color)) ?>">
+                        <span class="gk-tile__avatar" aria-hidden="true"><?= e((string) ($item['avatar'] ?? '🙂')) ?></span>
+                        <span class="gk-tile__name" title="<?= e((string) $item['nickname']) ?>"><?= e((string) $item['nickname']) ?></span>
+                        <span class="gk-tile__status"><?= e(Participant::statusLabel((string) $item['status'])) ?></span>
+                    </li>
+                <?php endforeach; ?>
+                <?php if ($participants === []): ?>
+                    <li class="gk-tile gk-tile--empty" style="grid-column:1/-1">
+                        <span class="gk-empty__icon" aria-hidden="true">📱</span>
+                        <span>Ninguém entrou ainda.<br>Compartilhe o QR Code!</span>
+                    </li>
+                <?php endif; ?>
+            </ul>
         </div>
 
-        <div class="tm-card">
-            <div class="tm-card__header">
+        <div class="gk-card gk-anim-slide gk-delay-1">
+            <div class="gk-card__head">
                 <div>
-                    <h3 class="tm-card__title">Eventos recentes</h3>
-                    <p class="tm-card__subtitle">Registro da partida.</p>
+                    <h3 class="gk-card__title">Eventos recentes</h3>
+                    <p class="gk-card__subtitle gk-mb-0">Registro da partida.</p>
                 </div>
             </div>
             <?php if ($events === []): ?>
-                <p class="tm-text-secondary tm-mb-0 tm-text-sm">Nenhum evento registrado.</p>
+                <p class="gk-text-muted gk-mb-0 gk-text-sm">Nenhum evento registrado.</p>
             <?php else: ?>
-                <ul class="tm-flex-col tm-gap-sm" style="list-style:none;padding:0;margin:0">
+                <ul class="gk-flex-col gk-gap-sm" style="list-style:none;padding:0;margin:0">
                     <?php foreach ($events as $event): ?>
-                        <li class="tm-flex-between tm-text-sm">
-                            <span class="tm-badge tm-badge--outline"><?= e((string) $event['type']) ?></span>
-                            <span class="tm-text-secondary"><?= e(date('d/m H:i', strtotime((string) $event['created_at']))) ?></span>
+                        <li class="gk-flex-between gk-text-sm">
+                            <span class="gk-badge"><?= e((string) $event['type']) ?></span>
+                            <span class="gk-text-muted"><?= e(date('d/m H:i', strtotime((string) $event['created_at']))) ?></span>
                         </li>
                     <?php endforeach; ?>
                 </ul>
@@ -179,15 +169,31 @@ $canFinish = in_array('FINISHED', $allowedTransitions, true);
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var target = document.getElementById('qrcode');
-    if (!target || typeof QRCode === 'undefined') return;
-    new QRCode(target, {
-        text: target.getAttribute('data-url'),
-        width: 196,
-        height: 196,
-        colorDark: '#17212B',
-        colorLight: '#FFFFFF',
-        correctLevel: QRCode.CorrectLevel.M
-    });
+    if (target && typeof QRCode !== 'undefined') {
+        new QRCode(target, {
+            text: target.getAttribute('data-url'),
+            width: 300,
+            height: 300,
+            colorDark: '#17212B',
+            colorLight: '#FFFFFF',
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    }
+
+    var container = document.querySelector('[data-gk-players]');
+    var count = document.querySelector('[data-gk-count]');
+    var statusEl = document.querySelector('[data-gk-status]');
+
+    if (container) {
+        TM.watchParticipants({
+            code: <?= json_encode((string) $room['code']) ?>,
+            endpoint: <?= json_encode(base_url('api/room/participants.php')) ?>,
+            container: container,
+            count: count,
+            status: statusEl,
+            interval: 3000
+        });
+    }
 });
 
 document.addEventListener('submit', function (event) {

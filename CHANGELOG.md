@@ -4,6 +4,49 @@ Todas as mudanças relevantes do TalentMatch são registradas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e o
 projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.5.0] — 2026-11-11
+
+### Adicionado
+
+- **Game Kit**: nova camada de design (`public/assets/css/game.css`) no estilo Kahoot —
+  botões grandes com sombra 3D, cartões arredondados, cores de resposta
+  (azul/vermelho/amarelo/verde) e animações de entrada.
+- **Avatares**: cada participante escolhe um emoji e uma cor de fundo ao entrar na sala.
+  Colunas `avatar` e `avatar_color` em `participants` (migração
+  `database/migrations/001_participant_avatars.sql`).
+- **Seletor de avatar e cor** na tela de entrada, com pré-visualização ao vivo.
+- **Edição de identidade** na sala de espera: trocar apelido, avatar e cor a qualquer
+  momento, via `POST /api/participant/identity.php`.
+- **Lobby do organizador** (`admin/sala.php`): QR Code grande à esquerda e **lista de
+  participantes ao vivo** à direita, atualizada a cada 3 segundos, com animação nos
+  jogadores que acabaram de entrar.
+- **Modo telão** (`admin/telao.php`): tela cheia para projetar o QR Code e a lista de
+  jogadores, sem o chrome do painel.
+- **Sala de espera do participante** reformulada: cartão do jogador com avatar,
+  grade de jogadores ao vivo, banner de etapa e atalho para o perfil.
+- **Página inicial** redesenhada com palco em gradiente, passos numerados e barras de
+  peso do algoritmo.
+- **Login e dashboard** do organizador no mesmo padrão visual.
+- **Perfil** reorganizado em etapas (dados, habilidades, experiências, formações),
+  com chips de habilidade e barra de ação fixa no mobile.
+- `public/assets/js/game.js` com os seletores de avatar/cor, a renderização da grade de
+  jogadores e o acompanhamento ao vivo da sala.
+- Caso de teste `tests/cases/07_avatars.php` e novas verificações no teste de fumaça
+  HTTP (avatares, identidade e modo telão).
+
+### Alterado
+
+- Responsividade em todas as telas: layout fluido, alvos de toque maiores e
+  comportamento adequado para celular, tablet e desktop.
+- A lista pública de participantes agora inclui avatar e cor.
+- `POST /api/room/join.php` aceita `avatar` e `avatar_color` (opcionais).
+
+### Notas
+
+- O modo de jogo completo (vagas, candidatar-se, pular e ranking) continua nas fases
+  seguintes. O lobby, a sala de espera e o telão já estão prontos para receber essas
+  telas.
+
 ## [0.4.0] — 2026-11-11
 
 ### Adicionado

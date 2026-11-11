@@ -160,11 +160,16 @@ check('A página da sala responde 200', $sala['status'] === 200, "status {$sala[
 check('A sala exibe o QR Code', str_contains($sala['body'], 'id="qrcode"'));
 
 $code = '';
-if (preg_match('/class="tm-room-code tm-mb-0">([A-Z0-9]{6})</', $sala['body'], $m) === 1) {
+if (preg_match('/class="(?:tm|gk)-room-code[^>]*>([A-Z0-9]{6})</', $sala['body'], $m) === 1) {
     $code = $m[1];
 }
 check('O código da sala (6 caracteres) é exibido', $code !== '', 'não encontrado');
 check('A URL de entrada aparece na página', str_contains($sala['body'], 'entrar.php?room=' . $code));
+
+$telao = http('GET', '/admin/telao.php?id=' . $roomId);
+check('O modo telão responde 200', $telao['status'] === 200, "status {$telao['status']}");
+check('O telão exibe o QR Code', str_contains($telao['body'], 'id="qrcode"'));
+check('O telão lista os jogadores', str_contains($telao['body'], 'Jogadores'));
 
 // ---------------------------------------------------------------------------
 echo "\n\033[1;36mEndpoints da API\033[0m\n";
@@ -198,18 +203,25 @@ $entrar = http('GET', '/entrar.php?room=' . $code);
 check('A página de entrada responde 200', $entrar['status'] === 200, "status {$entrar['status']}");
 check('A página de entrada mostra a sala', str_contains($entrar['body'], (string) $code));
 check('A página de entrada tem o formulário de apelido', str_contains($entrar['body'], 'name="nickname"'));
+check('A página de entrada tem o seletor de avatar', str_contains($entrar['body'], 'data-gk-avatar-picker') && str_contains($entrar['body'], 'name="avatar"'));
+check('A página de entrada tem o seletor de cor', str_contains($entrar['body'], 'data-gk-color-picker') && str_contains($entrar['body'], 'name="avatar_color"'));
 
 $csrfJoin = extractCsrf($entrar['body']);
 check('A entrada emite token CSRF', $csrfJoin !== '');
 
-$join = http('POST', '/entrar.php?room=' . $code, ['nickname' => 'Fulano Teste', 'csrf_token' => $csrfJoin]);
+$join = http('POST', '/entrar.php?room=' . $code, [
+    'nickname' => 'Fulano Teste',
+    'avatar' => '🦊',
+    'avatar_color' => '#1368CE',
+    'csrf_token' => $csrfJoin,
+]);
 check('Entrar na sala redireciona (302)', $join['status'] === 302, "status {$join['status']}");
 check('Redireciona para a sala de espera', str_contains((string) $join['location'], 'sala.php'));
 
 $waiting = http('GET', '/sala.php');
 check('A sala de espera responde 200', $waiting['status'] === 200, "status {$waiting['status']}");
 check('A sala de espera mostra o apelido', str_contains($waiting['body'], 'Fulano Teste'));
-check('A sala de espera lista os participantes', str_contains($waiting['body'], 'Participantes na sala'));
+check('A sala de espera lista os participantes', str_contains($waiting['body'], 'Jogadores na sala'));
 check('A sala de espera traz o token do participante', str_contains($waiting['body'], 'name="participant-token"'));
 
 // Entrada duplicada a partir de outro navegador (outro cookie jar).
@@ -234,11 +246,32 @@ $rosterJson = json_decode($roster['body'], true);
 check('GET /api/room/participants.php responde 200', $roster['status'] === 200, "status {$roster['status']}");
 check('A lista traz um participante', (int) ($rosterJson['data']['participants_count'] ?? 0) === 1);
 check('A lista pública não expõe token', !str_contains($roster['body'], 'token'));
+check('A lista pública inclui o avatar', ($rosterJson['data']['participants'][0]['avatar'] ?? '') === '🦊');
+check('A lista pública inclui a cor do avatar', ($rosterJson['data']['participants'][0]['avatar_color'] ?? '') === '#1368CE');
 
-$joinApi = http('POST', '/api/room/join.php', ['room' => $code, 'nickname' => 'Beltrano'], ['csrf' => $csrfJoin, 'json' => true]);
+$joinApi = http('POST', '/api/room/join.php', [
+    'room' => $code,
+    'nickname' => 'Beltrano',
+    'avatar' => '🐼',
+    'avatar_color' => '#E21B3C',
+], ['csrf' => $csrfJoin, 'json' => true]);
 $joinApiJson = json_decode($joinApi['body'], true);
 check('POST /api/room/join.php responde 201', $joinApi['status'] === 201, "status {$joinApi['status']}");
 check('A API devolve um token de 64 caracteres', strlen((string) ($joinApiJson['data']['token'] ?? '')) === 64);
+check('A API devolve o avatar escolhido', ($joinApiJson['data']['avatar'] ?? '') === '🐼');
+
+$identity = http('POST', '/api/participant/identity.php', [
+    'nickname' => 'Beltrano',
+    'avatar' => '🐢',
+    'avatar_color' => '#26890C',
+], ['csrf' => $csrfJoin, 'json' => true]);
+$identityJson = json_decode($identity['body'], true);
+check('POST /api/participant/identity.php responde 200', $identity['status'] === 200, "status {$identity['status']}");
+check('O avatar pode ser trocado', ($identityJson['data']['avatar'] ?? '') === '🐢');
+check('A cor do avatar pode ser trocada', ($identityJson['data']['avatar_color'] ?? '') === '#26890C');
+
+$identityNoCsrf = http('POST', '/api/participant/identity.php', ['nickname' => 'SemCsrf'], ['json' => true]);
+check('Trocar o avatar sem CSRF retorna 419', $identityNoCsrf['status'] === 419, "status {$identityNoCsrf['status']}");
 
 $joinNoCsrf = http('POST', '/api/room/join.php', ['room' => $code, 'nickname' => 'SemCsrf'], ['json' => true]);
 check('Entrar sem CSRF retorna 419', $joinNoCsrf['status'] === 419, "status {$joinNoCsrf['status']}");

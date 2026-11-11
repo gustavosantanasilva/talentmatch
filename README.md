@@ -77,12 +77,23 @@ O que existe hoje, comprovado por testes automatizados:
   servidor, salvamento de rascunho e finalização. A edição só é liberada durante a etapa
   `PROFILES`; ao finalizar, o participante passa a `READY` e o painel administrativo
   acompanha quantos perfis já foram concluídos.
+- **Interface de jogo (estilo Kahoot)**: nova camada visual (`game.css` + `game.js`) com
+  botões grandes, cartões arredondados, cores de resposta e animações de entrada.
+- **Avatares**: cada participante escolhe um **emoji** e uma **cor de fundo** ao entrar na
+  sala, e pode trocar depois pela sala de espera. O avatar aparece no lobby, na sala de
+  espera e no telão.
+- **Lobby do organizador**: tela da sala com **QR Code grande à esquerda** e **lista de
+  participantes ao vivo à direita**, atualizada sozinha a cada 3 segundos (com animação
+  nos jogadores que acabaram de entrar).
+- **Modo telão** (`admin/telao.php`): tela cheia para projetar o QR Code e a lista de
+  jogadores, sem o chrome do painel.
 - **API interna**: `POST /api/room/create.php`, `GET /api/room/state.php`,
   `POST /api/room/join.php`, `GET /api/room/participants.php`,
-  `POST /api/profile/save.php` e `POST /api/profile/complete.php`, com respostas JSON
-  padronizadas.
+  `POST /api/profile/save.php`, `POST /api/profile/complete.php` e
+  `POST /api/participant/identity.php`, com respostas JSON padronizadas.
 - Suíte de testes (`tests/`) com verificação de sintaxe, ambiente, banco, helpers, regras
-  de sala, regras de participantes, regras de perfil e um teste de fumaça HTTP completo.
+  de sala, regras de participantes, regras de perfil, regras de avatar e um teste de
+  fumaça HTTP completo.
 
 ---
 
@@ -143,11 +154,19 @@ talentmatch/
 │   ├── sala.php                # Sala de espera do participante (Fase 3)
 │   ├── perfil.php              # Perfil profissional do participante (Fase 4)
 │   ├── assets/                 # CSS, JS, imagens e bibliotecas vendorizadas
-│   │   ├── css/app.css         # Design system
+│   │   ├── css/app.css         # Design system base
+│   │   ├── css/game.css        # Game Kit — interface estilo Kahoot (v0.5)
 │   │   ├── js/app.js           # Utilitários (fetch, toasts, modal)
+│   │   └── js/game.js          # Avatares, grade de jogadores e sala ao vivo
 │   │   └── vendor/             # Bootstrap, Chart.js, QRCode.js
-│   ├── admin/                  # Painel do organizador (Fase 2)
+│   ├── admin/                  # Painel do organizador (Fases 2–5)
+│   │   ├── dashboard.php       # Visão geral e criação de salas
+│   │   ├── sala.php            # Lobby: QR Code + jogadores ao vivo
+│   │   └── telao.php           # Modo telão em tela cheia
 │   └── api/                    # Endpoints JSON (Fases 2–8)
+│       ├── room/               # Criação, estado, entrada e participantes
+│       ├── profile/            # Salvamento e finalização do perfil
+│       └── participant/        # Identidade (apelido e avatar)
 │
 ├── app/                        # Código privado da aplicação
 │   ├── bootstrap.php           # Inicialização, autoloader, erros, sessão
@@ -162,7 +181,8 @@ talentmatch/
 │
 ├── database/
 │   ├── schema.sql              # Estrutura completa + admin inicial
-│   └── seed_jobs.sql           # Catálogo de vagas de fallback
+│   ├── seed_jobs.sql           # Catálogo de vagas de fallback
+│   └── migrations/             # Migrações incrementais do banco
 │
 ├── docs/                       # Documentação
 ├── tests/                      # Suíte de testes (linha de comando)

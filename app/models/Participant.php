@@ -27,16 +27,18 @@ final class Participant
      *
      * @return array<string,mixed>
      */
-    public static function create(int $roomId, string $nickname, string $tokenHash): array
+    public static function create(int $roomId, string $nickname, string $tokenHash, string $avatar = '🙂', string $avatarColor = '#087F5B'): array
     {
         $pdo = Database::connection();
         $statement = $pdo->prepare(
-            'INSERT INTO participants (room_id, nickname, token_hash, status)
-             VALUES (:room_id, :nickname, :token_hash, "WAITING")'
+            'INSERT INTO participants (room_id, nickname, avatar, avatar_color, token_hash, status)
+             VALUES (:room_id, :nickname, :avatar, :avatar_color, :token_hash, "WAITING")'
         );
         $statement->execute([
             'room_id' => $roomId,
             'nickname' => $nickname,
+            'avatar' => $avatar,
+            'avatar_color' => $avatarColor,
             'token_hash' => $tokenHash,
         ]);
 
@@ -55,7 +57,7 @@ final class Participant
     public static function find(int $id): ?array
     {
         $statement = Database::connection()->prepare(
-            'SELECT id, room_id, nickname, status, is_active, joined_at, last_seen
+            'SELECT id, room_id, nickname, avatar, avatar_color, status, is_active, joined_at, last_seen
              FROM participants WHERE id = :id LIMIT 1'
         );
         $statement->execute(['id' => $id]);
@@ -70,7 +72,7 @@ final class Participant
     public static function findByTokenHash(string $tokenHash): ?array
     {
         $statement = Database::connection()->prepare(
-            'SELECT id, room_id, nickname, status, is_active, joined_at, last_seen
+            'SELECT id, room_id, nickname, avatar, avatar_color, status, is_active, joined_at, last_seen
              FROM participants WHERE token_hash = :token_hash LIMIT 1'
         );
         $statement->execute(['token_hash' => $tokenHash]);
@@ -97,7 +99,7 @@ final class Participant
     public static function listByRoom(int $roomId): array
     {
         $statement = Database::connection()->prepare(
-            'SELECT id, nickname, status, is_active, joined_at
+            'SELECT id, nickname, avatar, avatar_color, status, is_active, joined_at
              FROM participants
              WHERE room_id = :room_id
              ORDER BY joined_at ASC, id ASC'
@@ -135,6 +137,24 @@ final class Participant
             'UPDATE participants SET status = :status WHERE id = :id'
         );
         $statement->execute(['status' => $status, 'id' => $id]);
+    }
+
+    /**
+     * Atualiza apelido e avatar do participante.
+     */
+    public static function updateIdentity(int $id, string $nickname, string $avatar, string $avatarColor): void
+    {
+        $statement = Database::connection()->prepare(
+            'UPDATE participants
+             SET nickname = :nickname, avatar = :avatar, avatar_color = :avatar_color
+             WHERE id = :id'
+        );
+        $statement->execute([
+            'nickname' => $nickname,
+            'avatar' => $avatar,
+            'avatar_color' => $avatarColor,
+            'id' => $id,
+        ]);
     }
 
     public static function statusLabel(string $status): string

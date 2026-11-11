@@ -58,12 +58,21 @@ Regras gerais:
 
 #### `POST /api/room/join.php`
 
-Corpo: `{ "room": "ABC123", "nickname": "Fulano" }`. Exige token CSRF.
+Corpo: `{ "room": "ABC123", "nickname": "Fulano", "avatar": "🦊", "avatar_color": "#1368CE" }`.
+Exige token CSRF. `avatar` e `avatar_color` são opcionais — quando ausentes ou
+inválidos, o servidor aplica o avatar padrão (`🙂`) e a primeira cor da lista.
+
 Resposta `201` com `data.token` (texto puro, exibido **apenas uma vez**) — no servidor
 é guardado somente o hash SHA-256.
 
 Erros: `404` (sala inexistente), `409` (partida já começou ou apelido em uso),
 `422` (apelido inválido), `419` (CSRF).
+
+#### `GET /api/room/participants.php`
+
+Lista pública da sala: `code`, `status`, `status_label`, `participants_count` e
+`participants` com `nickname`, `avatar`, `avatar_color`, `status` e `joined_at`.
+Nunca expõe tokens nem dados de perfil.
 
 ### Partida
 
@@ -109,6 +118,28 @@ Resposta `200` com `data` contendo `area`, `headline`, `is_complete`, `skills`,
 
 Erros: `409` (fora da etapa `PROFILES`), `422` (validação, com `data.errors`),
 `401` (sem token válido), `419` (CSRF).
+
+### Identidade do participante
+
+| Método | Rota | Descrição | Fase | Status |
+|---|---|---|---|:--:|:--:|
+| POST | `/api/participant/identity.php` | Troca apelido, avatar e cor | 5 | ✅ |
+
+#### `POST /api/participant/identity.php`
+
+Autenticação por token do participante (sessão ou cabeçalho `X-Participant-Token`) e
+token CSRF.
+
+Corpo: `{ "nickname": "Novo Apelido", "avatar": "🐼", "avatar_color": "#1368CE" }`.
+
+Regras: o apelido segue a validação de nome (2 a 30 caracteres, único por sala);
+`avatar` precisa estar na lista configurada em `app.avatars` e `avatar_color` na lista
+de `app.avatar_colors` — caso contrário, o servidor normaliza para o padrão.
+
+Resposta `200` com `data` contendo `participant_id`, `nickname`, `avatar`,
+`avatar_color` e `status`.
+
+Erros: `409` (apelido já em uso), `401` (sem token válido), `419` (CSRF).
 
 ### Vagas
 

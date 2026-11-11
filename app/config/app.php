@@ -44,4 +44,20 @@ return [
         'INTERMEDIATE' => 'Intermediário',
         'ADVANCED' => 'Avançado',
     ],
+
+    // Avatares disponíveis (emoji) e cores de fundo correspondentes.
+    'avatars' => ['🦊', '🐼', '🐸', '🦁', '🐯', '🐨', '🐙', '🦄', '🐝', '🦖', '🐳', '🦉', '🐧', '🐢', '🐬', '🐥'],
+
+    'avatar_colors' => [
+        '#087F5B',
+        '#164E63',
+        '#C69B52',
+        '#DC2626',
+        '#D97706',
+        '#DB2777',
+        '#0D9488',
+        '#2563EB',
+    ],
+
+    'default_avatar' => '🙂',
 ];
