@@ -22,6 +22,7 @@ $bodyClass = $bodyClass ?? '';
 // Somente páginas realmente disponíveis entram no menu (sem links quebrados).
 $navItems = $nav ?? [
     ['label' => 'Início', 'url' => base_url('/'), 'page' => 'home', 'style' => 'link'],
+    ['label' => 'Painel do organizador', 'url' => base_url('admin/'), 'page' => 'admin', 'style' => 'button'],
 ];
 ?>
 <!doctype html>

@@ -98,3 +98,36 @@ if (!function_exists('json_array')) {
         return is_array($decoded) ? $decoded : [];
     }
 }
+
+if (!function_exists('flash_set')) {
+    /**
+     * Guarda uma mensagem para ser exibida após um redirecionamento.
+     *
+     * @param 'success'|'danger'|'warning'|'info' $type
+     */
+    function flash_set(string $type, string $message): void
+    {
+        \App\Core\Session::set('_flash', ['type' => $type, 'message' => $message]);
+    }
+}
+
+if (!function_exists('flash_get')) {
+    /**
+     * @return array{type:string,message:string}|null
+     */
+    function flash_get(): ?array
+    {
+        $flash = \App\Core\Session::get('_flash');
+
+        if (!is_array($flash)) {
+            return null;
+        }
+
+        \App\Core\Session::forget('_flash');
+
+        return [
+            'type' => (string) ($flash['type'] ?? 'info'),
+            'message' => (string) ($flash['message'] ?? ''),
+        ];
+    }
+}

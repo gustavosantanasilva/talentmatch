@@ -144,6 +144,49 @@
         return (Math.round(Number(value) * 100) / 100).toFixed(2).replace('.', ',');
     };
 
+    /* ----------------------------------------------------------------------
+       Shell administrativo (sidebar mobile) e cópia para a área de transferência
+       ---------------------------------------------------------------------- */
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('[data-tm-shell-toggle]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const shell = btn.closest('.tm-shell');
+                if (shell) shell.classList.toggle('is-open');
+            });
+        });
+
+        document.querySelectorAll('.tm-shell').forEach(function (shell) {
+            shell.addEventListener('click', function (event) {
+                if (event.target === shell && shell.classList.contains('is-open')) {
+                    shell.classList.remove('is-open');
+                }
+            });
+        });
+
+        document.querySelectorAll('[data-tm-copy]').forEach(function (btn) {
+            btn.addEventListener('click', async function () {
+                const value = btn.getAttribute('data-tm-copy') || '';
+                try {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        await navigator.clipboard.writeText(value);
+                    } else {
+                        const input = document.createElement('textarea');
+                        input.value = value;
+                        input.style.position = 'fixed';
+                        input.style.opacity = '0';
+                        document.body.appendChild(input);
+                        input.select();
+                        document.execCommand('copy');
+                        input.remove();
+                    }
+                    TM.toast('Copiado para a área de transferência.', 'success');
+                } catch (err) {
+                    TM.toast('Não foi possível copiar automaticamente.', 'warning');
+                }
+            });
+        });
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('[data-tm-toast]').forEach(function (el) {
             TM.toast(el.getAttribute('data-tm-toast'), el.getAttribute('data-tm-toast-type') || 'info');

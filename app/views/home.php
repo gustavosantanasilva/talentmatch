@@ -26,11 +26,11 @@ $steps = [
                 No fim, algoritmos de seleção são analisados — inclusive seus possíveis vieses.
             </p>
             <div class="tm-flex tm-gap-sm tm-wrap tm-mt-3">
-                <a href="#como-funciona" class="tm-btn tm-btn--lg" style="background:#fff;color:#065F46">
-                    Como funciona
+                <a href="<?= e(base_url('admin/')) ?>" class="tm-btn tm-btn--lg" style="background:#fff;color:#065F46">
+                    Sou organizador
                 </a>
-                <a href="#diagnostico" class="tm-btn tm-btn--lg" style="background:transparent;border-color:rgba(255,255,255,.5);color:#fff">
-                    Diagnóstico do sistema
+                <a href="#como-funciona" class="tm-btn tm-btn--lg" style="background:transparent;border-color:rgba(255,255,255,.5);color:#fff">
+                    Como funciona
                 </a>
             </div>
         </div>
@@ -100,7 +100,7 @@ $steps = [
                 <?php if (!empty($health['database'])): ?>
                     <div class="tm-alert tm-alert--success">
                         O ambiente está pronto e o banco respondeu corretamente.
-                        A criação de salas será habilitada na próxima fase do desenvolvimento.
+                        Acesse o <strong>Painel do organizador</strong> para criar uma sala e gerar o QR Code.
                     </div>
                 <?php else: ?>
                     <div class="tm-alert tm-alert--warning">

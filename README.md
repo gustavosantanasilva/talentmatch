@@ -48,7 +48,7 @@ O projeto é construído em fases. Esta tabela reflete **o que já funciona de v
 | Fase | Escopo | Status |
 |:----:|--------|:------:|
 | 1 | Estrutura, configuração privada, conexão MySQL, respostas JSON, scripts SQL, layout inicial | ✅ Concluída |
-| 2 | Administração: login, dashboard, criação de sala, QR Code | ⏳ Planejada |
+| 2 | Administração: login, dashboard, criação de sala, QR Code, controle de estado | ✅ Concluída |
 | 3 | Participantes: entrada por QR Code, apelido, token, sala de espera | ⏳ Planejada |
 | 4 | Perfis: habilidades, experiências, formações, validação e finalização | ⏳ Planejada |
 | 5 | Vagas: `DeepSeekService`, prompt, validação e fallback offline | ⏳ Planejada |
@@ -66,7 +66,13 @@ O que existe hoje, comprovado por testes automatizados:
 - Sessões seguras, proteção CSRF e validação de dados no servidor.
 - Esquema completo do banco (13 tabelas) + catálogo com 14 vagas fictícias de fallback.
 - Design system próprio e página inicial responsiva.
-- Suíte de testes (`tests/`) com verificação de sintaxe, ambiente, banco e helpers.
+- **Painel do organizador**: login com limite de tentativas, dashboard com estatísticas,
+  criação de salas com código único, QR Code e URL de entrada, e controle de estado com
+  transições validadas no servidor.
+- **API interna**: `POST /api/room/create.php` e `GET /api/room/state.php` com respostas
+  JSON padronizadas.
+- Suíte de testes (`tests/`) com verificação de sintaxe, ambiente, banco, helpers, regras
+  de sala e um teste de fumaça HTTP completo.
 
 ---
 
@@ -179,7 +185,7 @@ php -S localhost:8000 -t public
 Acesse `http://localhost:8000`. A página inicial exibe o **diagnóstico do sistema**,
 confirmando se a conexão com o banco está ativa.
 
-Credenciais iniciais do painel administrativo (Fase 2):
+Credenciais iniciais do painel administrativo:
 
 ```text
 usuário: admin
@@ -201,6 +207,10 @@ A suíte de testes roda por linha de comando, sem dependências externas:
 php tests/lint.php     # Verifica a sintaxe de todos os arquivos PHP
 php tests/run.php      # Executa a suíte de testes
 php tests/run.php --only=database   # Executa apenas um grupo
+
+# Teste de fumaça HTTP (requer o servidor em execução)
+php -S 127.0.0.1:8080 -t public &
+php tests/smoke.php http://127.0.0.1:8080
 ```
 
 Os testes de banco são executados automaticamente quando o `.env` está configurado;
