@@ -995,6 +995,30 @@ small, .tm-text-sm { font-size: .875rem; }
 
 .tm-roster__name { flex: 1; font-weight: 600; }
 
+/* Linhas repetíveis do formulário de perfil */
+.tm-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 180px auto;
+    gap: .5rem;
+    align-items: center;
+    margin-bottom: .5rem;
+}
+
+.tm-row--stack {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--tm-border);
+}
+
+.tm-row--stack:last-child { border-bottom: 0; }
+
+.tm-row .tm-input { width: 100%; }
+
+@media (max-width: 640px) {
+    .tm-row { grid-template-columns: minmax(0, 1fr); }
+}
+
 .tm-pulse {
     display: inline-block;
     width: 9px;

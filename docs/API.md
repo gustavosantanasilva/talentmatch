@@ -44,7 +44,7 @@ Regras gerais:
 
 ## 2. Endpoints
 
-> **Status:** os endpoints de salas e participantes (fases 2 e 3) estão
+> **Status:** os endpoints de salas, participantes e perfis (fases 2, 3 e 4) estão
 > **implementados**. Os demais serão adicionados nas fases seguintes.
 
 ### Salas
@@ -76,10 +76,39 @@ Erros: `404` (sala inexistente), `409` (partida já começou ou apelido em uso),
 
 ### Perfis
 
-| Método | Rota | Descrição | Fase |
-|---|---|---|:--:|
-| POST | `/api/profile/save.php` | Salva o perfil | 4 |
-| POST | `/api/profile/complete.php` | Finaliza o perfil | 4 |
+| Método | Rota | Descrição | Fase | Status |
+|---|---|---|:--:|:--:|
+| POST | `/api/profile/save.php` | Salva o rascunho do perfil | 4 | ✅ |
+| POST | `/api/profile/complete.php` | Salva e finaliza o perfil | 4 | ✅ |
+
+#### `POST /api/profile/save.php` e `POST /api/profile/complete.php`
+
+Autenticação por token do participante (sessão ou cabeçalho `X-Participant-Token`) e
+token CSRF. Só funcionam enquanto a sala está no estado **`PROFILES`**; em qualquer
+outro estado respondem `409`.
+
+Corpo:
+
+```json
+{
+  "area": "software",
+  "headline": "Desenvolvedor em formação",
+  "skills": [{ "name": "PHP", "level": "INTERMEDIATE" }],
+  "experiences": [{ "title": "Estágio", "description": "...", "competencies": "PHP, SQL" }],
+  "educations": [{ "course": "Informática", "institution": "Escola X", "description": "" }]
+}
+```
+
+Regras: `area` deve constar em `app.areas`; até 20 habilidades, 10 experiências e 10
+formações; habilidades entre 2 e 60 caracteres, sem repetições (comparadas de forma
+normalizada); `headline` até 120 caracteres. Ao **finalizar**, é exigida ao menos uma
+habilidade — o perfil é marcado como completo e o participante passa a `READY`.
+
+Resposta `200` com `data` contendo `area`, `headline`, `is_complete`, `skills`,
+`experiences` e `educations`.
+
+Erros: `409` (fora da etapa `PROFILES`), `422` (validação, com `data.errors`),
+`401` (sem token válido), `419` (CSRF).
 
 ### Vagas
 

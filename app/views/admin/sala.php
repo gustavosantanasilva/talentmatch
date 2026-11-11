@@ -10,6 +10,7 @@
  * @var array|null $flash
  */
 use App\Core\Csrf;
+use App\Models\Participant;
 use App\Services\RoomService;
 
 $participants = $participants ?? [];
@@ -69,6 +70,7 @@ $canFinish = in_array('FINISHED', $allowedTransitions, true);
         <div class="tm-card">
             <h3 class="tm-card__title tm-mb-2">Resumo</h3>
             <div class="tm-flex-between tm-mb-1"><span class="tm-text-secondary">Participantes</span><strong><?= count($participants) ?></strong></div>
+            <div class="tm-flex-between tm-mb-1"><span class="tm-text-secondary">Perfis concluídos</span><strong><?= (int) ($completedProfiles ?? 0) ?> / <?= count($participants) ?></strong></div>
             <div class="tm-flex-between tm-mb-1"><span class="tm-text-secondary">Vagas geradas</span><strong><?= (int) $room['current_job_index'] > 0 || $status === 'JOBS' || $status === 'RESULTS' ? (int) ($jobsCount ?? 0) : 0 ?></strong></div>
             <div class="tm-flex-between tm-mb-1"><span class="tm-text-secondary">Origem das vagas</span><strong><?= e((string) $room['jobs_source']) ?></strong></div>
             <div class="tm-flex-between"><span class="tm-text-secondary">Estado</span><strong><?= e($status) ?></strong></div>
@@ -139,7 +141,7 @@ $canFinish = in_array('FINISHED', $allowedTransitions, true);
                                 <tr>
                                     <td><?= (int) ($index + 1) ?></td>
                                     <td><?= e((string) $participant['nickname']) ?></td>
-                                    <td><span class="tm-badge"><?= e((string) $participant['status']) ?></span></td>
+                                    <td><span class="tm-badge"><?= e(Participant::statusLabel((string) $participant['status'])) ?></span></td>
                                     <td class="tm-text-secondary tm-text-sm">
                                         <?= e(date('H:i', strtotime((string) $participant['joined_at']))) ?>
                                     </td>

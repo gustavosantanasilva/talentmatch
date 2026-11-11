@@ -30,7 +30,7 @@ define('BASE_PATH', dirname(__DIR__));
 define('APP_PATH', BASE_PATH . '/app');
 define('PUBLIC_PATH', BASE_PATH . '/public');
 define('STORAGE_PATH', BASE_PATH . '/storage');
-define('TM_VERSION', '0.3.0');
+define('TM_VERSION', '0.4.0');
 
 // ---------------------------------------------------------------------------
 // Autoloader PSR-4: namespace App\ mapeado para o diretório app/

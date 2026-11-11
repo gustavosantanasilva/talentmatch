@@ -250,6 +250,70 @@ $stateAfter = http('GET', '/api/room/state.php?code=' . $code);
 $stateAfterJson = json_decode($stateAfter['body'], true);
 check('O estado reflete os dois participantes', (int) ($stateAfterJson['data']['participants_count'] ?? 0) === 2);
 
+// ---------------------------------------------------------------------------
+echo "\n\033[1;36mPerfil do participante\033[0m\n";
+
+$start = http('POST', '/admin/sala.php?id=' . $roomId, ['action' => 'start', 'csrf_token' => $csrfJoin]);
+check('Iniciar a partida redireciona (302)', $start['status'] === 302, "status {$start['status']}");
+
+$perfil = http('GET', '/perfil.php');
+check('A página de perfil responde 200', $perfil['status'] === 200, "status {$perfil['status']}");
+check('O formulário de perfil aparece', str_contains($perfil['body'], 'name="area"') && str_contains($perfil['body'], 'Finalizar perfil'));
+$csrfPerfil = extractCsrf($perfil['body']);
+
+$invalid = http('POST', '/perfil.php', ['action' => 'complete', 'area' => 'software', 'csrf_token' => $csrfPerfil]);
+check('Finalizar sem habilidade é recusado', $invalid['status'] === 200 && str_contains($invalid['body'], 'ao menos uma habilidade'));
+
+$saveDraft = http('POST', '/perfil.php', [
+    'action' => 'save',
+    'area' => 'software',
+    'headline' => 'Dev fictício',
+    'csrf_token' => $csrfPerfil,
+    'skills' => [0 => ['name' => 'PHP', 'level' => 'ADVANCED'], 1 => ['name' => 'MySQL', 'level' => 'INTERMEDIATE']],
+    'experiences' => [0 => ['title' => 'Projeto escolar', 'description' => 'Site fictício', 'competencies' => 'HTML, CSS']],
+    'educations' => [0 => ['course' => 'Técnico em Informática', 'institution' => 'Escola Fictícia', 'description' => '']],
+]);
+check('Salvar rascunho redireciona (302)', $saveDraft['status'] === 302, "status {$saveDraft['status']}");
+
+$perfilSaved = http('GET', '/perfil.php');
+check('O perfil salvo mostra as habilidades', str_contains($perfilSaved['body'], 'PHP') && str_contains($perfilSaved['body'], 'MySQL'));
+
+$complete = http('POST', '/perfil.php', [
+    'action' => 'complete',
+    'area' => 'software',
+    'headline' => 'Dev fictício',
+    'csrf_token' => $csrfPerfil,
+    'skills' => [0 => ['name' => 'PHP', 'level' => 'ADVANCED'], 1 => ['name' => 'MySQL', 'level' => 'INTERMEDIATE']],
+]);
+check('Finalizar o perfil redireciona (302)', $complete['status'] === 302, "status {$complete['status']}");
+
+$perfilDone = http('GET', '/perfil.php');
+check('O perfil finalizado é exibido', str_contains($perfilDone['body'], 'Perfil finalizado'));
+
+$apiSave = http('POST', '/api/profile/save.php', [
+    'area' => 'dados',
+    'skills' => [['name' => 'Python', 'level' => 'BASIC']],
+], ['csrf' => $csrfJoin, 'json' => true]);
+check('POST /api/profile/save.php responde 200', $apiSave['status'] === 200, "status {$apiSave['status']}");
+
+$apiComplete = http('POST', '/api/profile/complete.php', [
+    'area' => 'dados',
+    'skills' => [['name' => 'Python', 'level' => 'ADVANCED']],
+], ['csrf' => $csrfJoin, 'json' => true]);
+check('POST /api/profile/complete.php responde 200', $apiComplete['status'] === 200, "status {$apiComplete['status']}");
+
+$apiAnonJar = sys_get_temp_dir() . '/tm_api_anon_' . getmypid() . '.txt';
+@unlink($apiAnonJar);
+$savedJar3 = $cookieJar;
+$cookieJar = $apiAnonJar;
+$apiNoAuth = http('POST', '/api/profile/save.php', ['area' => 'dados'], ['json' => true]);
+check('Salvar perfil sem autenticação retorna 401', $apiNoAuth['status'] === 401, "status {$apiNoAuth['status']}");
+$cookieJar = $savedJar3;
+@unlink($apiAnonJar);
+
+// ---------------------------------------------------------------------------
+echo "\n\033[1;36mEncerramento\033[0m\n";
+
 $finish = http('POST', '/admin/sala.php?id=' . $roomId, ['action' => 'finish', 'csrf_token' => $csrfJoin]);
 check('Encerrar a sala redireciona (302)', $finish['status'] === 302, "status {$finish['status']}");
 

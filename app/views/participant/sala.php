@@ -49,7 +49,17 @@ $statusMessage = match ($status) {
                 <?= e($statusMessage) ?>
             </div>
 
-            <?php if ($status === 'WAITING'): ?>
+            <?php if ($status === 'PROFILES'): ?>
+                <div class="tm-mt-2">
+                    <?php if ((string) $participant['status'] === 'READY'): ?>
+                        <a class="tm-btn tm-btn--primary" href="<?= e(base_url('perfil.php')) ?>">Revisar meu perfil</a>
+                        <div class="tm-hint">Perfil finalizado. Você pode ajustar enquanto esta etapa durar.</div>
+                    <?php else: ?>
+                        <a class="tm-btn tm-btn--primary tm-btn--lg" href="<?= e(base_url('perfil.php')) ?>">Montar meu perfil</a>
+                        <div class="tm-hint">Preencha habilidades, experiências e formações para participar.</div>
+                    <?php endif; ?>
+                </div>
+            <?php elseif ($status === 'WAITING'): ?>
                 <p class="tm-text-secondary tm-text-sm tm-mb-0">
                     Mantenha esta página aberta. Ela é atualizada automaticamente quando
                     o organizador iniciar a partida.

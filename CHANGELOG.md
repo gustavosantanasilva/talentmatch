@@ -4,6 +4,40 @@ Todas as mudanças relevantes do TalentMatch são registradas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e o
 projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.4.0] — 2026-11-11
+
+### Adicionado
+
+- Montagem do perfil profissional do participante (`public/perfil.php`), disponível
+  apenas durante a etapa `PROFILES` da partida.
+- Formulário com área profissional, resumo, habilidades (nível básico/intermediário/
+  avançado), experiências e formações, com linhas dinâmicas adicionadas e removidas no
+  cliente.
+- Validação completa no servidor: área permitida, limites de 20 habilidades, 10
+  experiências e 10 formações, tamanhos de texto e rejeição de habilidades repetidas.
+- Salvamento de rascunho e finalização do perfil; ao finalizar, o participante passa a
+  `READY` e `profiles.is_complete` é marcado.
+- Modelos `Profile`, `Skill`, `Experience` e `Education`, e serviço `ProfileService`
+  (normalização, validação, persistência transacional e dados para a view).
+- Endpoints `POST /api/profile/save.php` e `POST /api/profile/complete.php`.
+- View de perfil do participante com formulário e resumo somente leitura quando a etapa
+  já foi encerrada.
+- Contador de **perfis concluídos** no painel administrativo e rótulos legíveis de status
+  do participante (`Participant::statusLabel()`).
+- Botão de acesso ao perfil na sala de espera quando a partida entra em `PROFILES`.
+- Caso de teste `tests/cases/06_profiles.php` e novas verificações no teste de fumaça
+  HTTP (salvar, finalizar, validação e bloqueio fora da etapa).
+
+### Alterado
+
+- A sala de espera do participante agora direciona para a montagem do perfil na etapa
+  correta, em vez de apenas aguardar.
+
+### Notas
+
+- A geração de vagas (Fase 5) ainda não está disponível; após finalizar o perfil o
+  participante aguarda o organizador.
+
 ## [0.3.0] — 2026-11-11
 
 ### Adicionado

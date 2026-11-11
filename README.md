@@ -50,7 +50,7 @@ O projeto é construído em fases. Esta tabela reflete **o que já funciona de v
 | 1 | Estrutura, configuração privada, conexão MySQL, respostas JSON, scripts SQL, layout inicial | ✅ Concluída |
 | 2 | Administração: login, dashboard, criação de sala, QR Code, controle de estado | ✅ Concluída |
 | 3 | Participantes: entrada por QR Code, apelido, token, sala de espera | ✅ Concluída |
-| 4 | Perfis: habilidades, experiências, formações, validação e finalização | ⏳ Planejada |
+| 4 | Perfis: habilidades, experiências, formações, validação e finalização | ✅ Concluída |
 | 5 | Vagas: `DeepSeekService`, prompt, validação e fallback offline | ⏳ Planejada |
 | 6 | Candidaturas: candidatar-se, pular, anti-duplicidade | ⏳ Planejada |
 | 7 | Compatibilidade: `MatchingService`, pesos, dicionário de sinônimos, rankings | ⏳ Planejada |
@@ -72,11 +72,17 @@ O que existe hoje, comprovado por testes automatizados:
 - **Participantes**: entrada por QR Code (`entrar.php?room=CÓDIGO`), apelido único por
   sala, token aleatório guardado apenas como hash SHA-256 e **sala de espera** com lista
   de participantes e atualização automática do estado.
+- **Perfis profissionais**: montagem de perfil em `perfil.php` (área, resumo, até 20
+  habilidades, 10 experiências e 10 formações) com linhas dinâmicas, validação no
+  servidor, salvamento de rascunho e finalização. A edição só é liberada durante a etapa
+  `PROFILES`; ao finalizar, o participante passa a `READY` e o painel administrativo
+  acompanha quantos perfis já foram concluídos.
 - **API interna**: `POST /api/room/create.php`, `GET /api/room/state.php`,
-  `POST /api/room/join.php` e `GET /api/room/participants.php`, com respostas JSON
+  `POST /api/room/join.php`, `GET /api/room/participants.php`,
+  `POST /api/profile/save.php` e `POST /api/profile/complete.php`, com respostas JSON
   padronizadas.
 - Suíte de testes (`tests/`) com verificação de sintaxe, ambiente, banco, helpers, regras
-  de sala, regras de participantes e um teste de fumaça HTTP completo.
+  de sala, regras de participantes, regras de perfil e um teste de fumaça HTTP completo.
 
 ---
 
@@ -135,6 +141,7 @@ talentmatch/
 │   ├── index.php               # Página inicial
 │   ├── entrar.php              # Entrada do participante por QR Code (Fase 3)
 │   ├── sala.php                # Sala de espera do participante (Fase 3)
+│   ├── perfil.php              # Perfil profissional do participante (Fase 4)
 │   ├── assets/                 # CSS, JS, imagens e bibliotecas vendorizadas
 │   │   ├── css/app.css         # Design system
 │   │   ├── js/app.js           # Utilitários (fetch, toasts, modal)

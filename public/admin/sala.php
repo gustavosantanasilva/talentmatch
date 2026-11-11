@@ -12,6 +12,7 @@ use App\Core\Request;
 use App\Core\View;
 use App\Middleware\Auth;
 use App\Models\GameEvent;
+use App\Models\Profile;
 use App\Models\Room;
 use App\Services\RoomService;
 
@@ -76,5 +77,6 @@ View::render('admin/sala', [
     'events' => GameEvent::recentForRoom($roomId, 15),
     'allowedTransitions' => RoomService::allowedTransitions((string) $room['status']),
     'jobsCount' => Room::jobsCount($roomId),
+    'completedProfiles' => Profile::completedCountForRoom($roomId),
     'flash' => $flash,
 ], 'layouts/admin');
