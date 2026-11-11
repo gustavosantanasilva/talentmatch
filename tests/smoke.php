@@ -192,6 +192,79 @@ $noCsrf = http('POST', '/api/room/create.php', [], ['json' => true]);
 check('Criar sala sem CSRF retorna 419', $noCsrf['status'] === 419, "status {$noCsrf['status']}");
 
 // ---------------------------------------------------------------------------
+echo "\n\033[1;36mEntrada de participantes\033[0m\n";
+
+$entrar = http('GET', '/entrar.php?room=' . $code);
+check('A página de entrada responde 200', $entrar['status'] === 200, "status {$entrar['status']}");
+check('A página de entrada mostra a sala', str_contains($entrar['body'], (string) $code));
+check('A página de entrada tem o formulário de apelido', str_contains($entrar['body'], 'name="nickname"'));
+
+$csrfJoin = extractCsrf($entrar['body']);
+check('A entrada emite token CSRF', $csrfJoin !== '');
+
+$join = http('POST', '/entrar.php?room=' . $code, ['nickname' => 'Fulano Teste', 'csrf_token' => $csrfJoin]);
+check('Entrar na sala redireciona (302)', $join['status'] === 302, "status {$join['status']}");
+check('Redireciona para a sala de espera', str_contains((string) $join['location'], 'sala.php'));
+
+$waiting = http('GET', '/sala.php');
+check('A sala de espera responde 200', $waiting['status'] === 200, "status {$waiting['status']}");
+check('A sala de espera mostra o apelido', str_contains($waiting['body'], 'Fulano Teste'));
+check('A sala de espera lista os participantes', str_contains($waiting['body'], 'Participantes na sala'));
+check('A sala de espera traz o token do participante', str_contains($waiting['body'], 'name="participant-token"'));
+
+// Entrada duplicada a partir de outro navegador (outro cookie jar).
+$dupJar = sys_get_temp_dir() . '/tm_dup_' . getmypid() . '.txt';
+@unlink($dupJar);
+$savedJar = $cookieJar;
+$cookieJar = $dupJar;
+
+$dupPage = http('GET', '/entrar.php?room=' . $code);
+$dupCsrf = extractCsrf($dupPage['body']);
+$dup = http('POST', '/entrar.php?room=' . $code, ['nickname' => 'fulano teste', 'csrf_token' => $dupCsrf]);
+check('Apelido duplicado é recusado', $dup['status'] === 200 && str_contains($dup['body'], 'já está em uso'));
+
+$cookieJar = $savedJar;
+@unlink($dupJar);
+
+// ---------------------------------------------------------------------------
+echo "\n\033[1;36mAPI dos participantes\033[0m\n";
+
+$roster = http('GET', '/api/room/participants.php?code=' . $code);
+$rosterJson = json_decode($roster['body'], true);
+check('GET /api/room/participants.php responde 200', $roster['status'] === 200, "status {$roster['status']}");
+check('A lista traz um participante', (int) ($rosterJson['data']['participants_count'] ?? 0) === 1);
+check('A lista pública não expõe token', !str_contains($roster['body'], 'token'));
+
+$joinApi = http('POST', '/api/room/join.php', ['room' => $code, 'nickname' => 'Beltrano'], ['csrf' => $csrfJoin, 'json' => true]);
+$joinApiJson = json_decode($joinApi['body'], true);
+check('POST /api/room/join.php responde 201', $joinApi['status'] === 201, "status {$joinApi['status']}");
+check('A API devolve um token de 64 caracteres', strlen((string) ($joinApiJson['data']['token'] ?? '')) === 64);
+
+$joinNoCsrf = http('POST', '/api/room/join.php', ['room' => $code, 'nickname' => 'SemCsrf'], ['json' => true]);
+check('Entrar sem CSRF retorna 419', $joinNoCsrf['status'] === 419, "status {$joinNoCsrf['status']}");
+
+$joinBadRoom = http('POST', '/api/room/join.php', ['room' => 'ZZZZZZ', 'nickname' => 'Ninguem'], ['csrf' => $csrfJoin, 'json' => true]);
+check('Entrar em sala inexistente retorna 404', $joinBadRoom['status'] === 404, "status {$joinBadRoom['status']}");
+
+$stateAfter = http('GET', '/api/room/state.php?code=' . $code);
+$stateAfterJson = json_decode($stateAfter['body'], true);
+check('O estado reflete os dois participantes', (int) ($stateAfterJson['data']['participants_count'] ?? 0) === 2);
+
+$finish = http('POST', '/admin/sala.php?id=' . $roomId, ['action' => 'finish', 'csrf_token' => $csrfJoin]);
+check('Encerrar a sala redireciona (302)', $finish['status'] === 302, "status {$finish['status']}");
+
+$closedJar = sys_get_temp_dir() . '/tm_closed_' . getmypid() . '.txt';
+@unlink($closedJar);
+$savedJar2 = $cookieJar;
+$cookieJar = $closedJar;
+
+$closed = http('GET', '/entrar.php?room=' . $code);
+check('Sala encerrada recusa novas entradas', $closed['status'] === 200 && str_contains($closed['body'], 'A partida já começou'));
+
+$cookieJar = $savedJar2;
+@unlink($closedJar);
+
+// ---------------------------------------------------------------------------
 echo "\n\033[1;36mProteção de acesso\033[0m\n";
 
 $anonJar = sys_get_temp_dir() . '/tm_anon_' . getmypid() . '.txt';

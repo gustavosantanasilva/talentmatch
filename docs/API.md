@@ -42,18 +42,28 @@ Regras gerais:
 - Cabeçalho `X-CSRF-Token` obrigatório nas requisições de escrita.
 - Nunca há *stack trace* nem dados internos na resposta.
 
-## 2. Endpoints planejados
+## 2. Endpoints
 
-> **Status:** os endpoints abaixo serão implementados nas fases 2 a 8. Nenhum deles
-> está funcional nesta fase do desenvolvimento.
+> **Status:** os endpoints de salas e participantes (fases 2 e 3) estão
+> **implementados**. Os demais serão adicionados nas fases seguintes.
 
 ### Salas
 
-| Método | Rota | Descrição | Fase |
-|---|---|---|:--:|
-| POST | `/api/room/create.php` | Cria uma sala | 2 |
-| POST | `/api/room/join.php` | Entra em uma sala com apelido | 3 |
-| GET | `/api/room/state.php` | Estado atual da sala | 2 |
+| Método | Rota | Descrição | Fase | Status |
+|---|---|---|:--:|:--:|
+| POST | `/api/room/create.php` | Cria uma sala | 2 | ✅ |
+| POST | `/api/room/join.php` | Entra em uma sala com apelido | 3 | ✅ |
+| GET | `/api/room/state.php` | Estado atual da sala | 2 | ✅ |
+| GET | `/api/room/participants.php` | Lista pública dos participantes | 3 | ✅ |
+
+#### `POST /api/room/join.php`
+
+Corpo: `{ "room": "ABC123", "nickname": "Fulano" }`. Exige token CSRF.
+Resposta `201` com `data.token` (texto puro, exibido **apenas uma vez**) — no servidor
+é guardado somente o hash SHA-256.
+
+Erros: `404` (sala inexistente), `409` (partida já começou ou apelido em uso),
+`422` (apelido inválido), `419` (CSRF).
 
 ### Partida
 

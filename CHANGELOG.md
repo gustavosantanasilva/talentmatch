@@ -4,6 +4,30 @@ Todas as mudanças relevantes do TalentMatch são registradas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e o
 projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.3.0] — 2026-11-11
+
+### Adicionado
+
+- Entrada de participantes por QR Code (`public/entrar.php?room=CÓDIGO`), com apelido
+  único por sala.
+- Token de participante aleatório (32 bytes) armazenado **apenas como hash SHA-256**.
+- Sala de espera do participante (`public/sala.php`) com lista de participantes,
+  mensagens por estado da partida e atualização automática de baixa frequência.
+- Middleware `ParticipantAuth`: sessão para navegação e cabeçalho
+  `X-Participant-Token` para chamadas de API.
+- Modelo `Participant` e serviço `ParticipantService` (entrada na sala, validação de
+  apelido, lista pública e token).
+- Endpoints `POST /api/room/join.php` e `GET /api/room/participants.php`.
+- Layout do participante e estilos da área do participante (lista de presença).
+- Caso de teste `tests/cases/05_participants.php` e novas verificações no teste de
+  fumaça HTTP (entrada, apelido duplicado, token, API e sala encerrada).
+- O QR Code criado na Fase 2 agora leva a uma página funcional.
+
+### Notas
+
+- A montagem de perfis (Fase 4) ainda não está disponível; a sala de espera apenas
+  acompanha o estado da partida.
+
 ## [0.2.0] — 2026-11-11
 
 ### Adicionado

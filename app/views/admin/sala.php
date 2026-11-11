@@ -126,7 +126,7 @@ $canFinish = in_array('FINISHED', $allowedTransitions, true);
 
             <?php if ($participants === []): ?>
                 <div class="tm-alert tm-alert--info">
-                    Ninguém entrou ainda. A entrada por QR Code é implementada na <strong>Fase 3</strong>.
+                    Ninguém entrou ainda. Compartilhe o QR Code ou o link de entrada.
                 </div>
             <?php else: ?>
                 <div class="tm-table-scroll">

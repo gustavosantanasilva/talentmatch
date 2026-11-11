@@ -49,7 +49,7 @@ O projeto é construído em fases. Esta tabela reflete **o que já funciona de v
 |:----:|--------|:------:|
 | 1 | Estrutura, configuração privada, conexão MySQL, respostas JSON, scripts SQL, layout inicial | ✅ Concluída |
 | 2 | Administração: login, dashboard, criação de sala, QR Code, controle de estado | ✅ Concluída |
-| 3 | Participantes: entrada por QR Code, apelido, token, sala de espera | ⏳ Planejada |
+| 3 | Participantes: entrada por QR Code, apelido, token, sala de espera | ✅ Concluída |
 | 4 | Perfis: habilidades, experiências, formações, validação e finalização | ⏳ Planejada |
 | 5 | Vagas: `DeepSeekService`, prompt, validação e fallback offline | ⏳ Planejada |
 | 6 | Candidaturas: candidatar-se, pular, anti-duplicidade | ⏳ Planejada |
@@ -69,10 +69,14 @@ O que existe hoje, comprovado por testes automatizados:
 - **Painel do organizador**: login com limite de tentativas, dashboard com estatísticas,
   criação de salas com código único, QR Code e URL de entrada, e controle de estado com
   transições validadas no servidor.
-- **API interna**: `POST /api/room/create.php` e `GET /api/room/state.php` com respostas
-  JSON padronizadas.
+- **Participantes**: entrada por QR Code (`entrar.php?room=CÓDIGO`), apelido único por
+  sala, token aleatório guardado apenas como hash SHA-256 e **sala de espera** com lista
+  de participantes e atualização automática do estado.
+- **API interna**: `POST /api/room/create.php`, `GET /api/room/state.php`,
+  `POST /api/room/join.php` e `GET /api/room/participants.php`, com respostas JSON
+  padronizadas.
 - Suíte de testes (`tests/`) com verificação de sintaxe, ambiente, banco, helpers, regras
-  de sala e um teste de fumaça HTTP completo.
+  de sala, regras de participantes e um teste de fumaça HTTP completo.
 
 ---
 
@@ -129,6 +133,8 @@ Detalhes completos em [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 talentmatch/
 ├── public/                     # Raiz pública do site
 │   ├── index.php               # Página inicial
+│   ├── entrar.php              # Entrada do participante por QR Code (Fase 3)
+│   ├── sala.php                # Sala de espera do participante (Fase 3)
 │   ├── assets/                 # CSS, JS, imagens e bibliotecas vendorizadas
 │   │   ├── css/app.css         # Design system
 │   │   ├── js/app.js           # Utilitários (fetch, toasts, modal)
